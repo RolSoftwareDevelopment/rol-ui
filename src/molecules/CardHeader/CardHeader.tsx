@@ -1,7 +1,7 @@
 import React from 'react';
 import ACardHeader, { CardHeaderProps as CHProps } from './ACardHeader'
-import Text, { TextProps } from '../../atoms/Text/Text'
-import Img, { ImgProps } from '../../atoms/Img/Img'
+import Text, { TextProps } from '../../atoms/Text'
+import Img, { ImgProps } from '../../atoms/Img'
 
 type Props = {
     titleTextProps?: TextProps

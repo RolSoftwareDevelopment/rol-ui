@@ -1,8 +1,8 @@
 {
   "name": "uirol",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Atomic styleless React UI components",
-  "main": "./",
+  "main": "./dist",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

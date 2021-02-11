@@ -8,7 +8,7 @@
         "target": "es5",
         "jsx": "react",
         "removeComments": true,
-        "outDir": "lib",
+        "outDir": "dist",
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
@@ -25,6 +25,7 @@
         "node_modules",
         "dist",
         "lib",
+        "dist",
         "next-example"
     ]
 }

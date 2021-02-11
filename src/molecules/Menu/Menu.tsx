@@ -1,6 +1,6 @@
 import React from 'react';
 import AMenu, { MenuProps as MProps } from './AMenu'
-import List, { ListProps } from '../../atoms/List/List'
+import List, { ListProps } from '../../atoms/List'
 
 type Props = {
     ListProps?: ListProps
