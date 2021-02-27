@@ -8,7 +8,7 @@ export type LoadingProps = {
     classNames?: string
 } & {
     showComponentOnLoading?: true
-    spinnerOnTop: boolean
+    spinnerOnTop?: boolean
 } & { showComponentOnLoading?: true }
 
 export const Loading = (props: LoadingProps) => {

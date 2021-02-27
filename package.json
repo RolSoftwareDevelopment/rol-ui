@@ -1,6 +1,6 @@
 {
   "name": "uirol",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Atomic styleless React UI components",
   "main": "./dist",
   "scripts": {
