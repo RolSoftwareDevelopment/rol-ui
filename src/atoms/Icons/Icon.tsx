@@ -3,6 +3,7 @@ import React from 'react';
 export type IconProps = {
     className?: string
     children?: any
+    fill?: string
 }
 const Icon = (props: IconProps) => {
     return (
