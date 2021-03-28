@@ -26,7 +26,6 @@ interface Props {
         navGroup?: string
         children?: string
     },
-    position?: "fixed" | "absolute" | "sticky" | "relative" | "static"
     children?: React.ReactNode
     render?: { renderLayout?: (info: LayoutInfo) => JSX.Element }
     onScroll?: () => any
@@ -66,7 +65,7 @@ export const Navbar = (props: Props) => {
     }, [prevScrollpos, handleScroll]);
 
 
-    const { activeNavGroup, navGroups, style, layout, position } = props
+    const { activeNavGroup, navGroups, style, layout } = props
 
     let navBarLayout, childrenLayout, navGroupLayout
     if (layout) {
@@ -80,7 +79,7 @@ export const Navbar = (props: Props) => {
         navGroup = navGroups[0]
     }
 
-    let classes = cs("z-navbar", { sticky: !position, [position]: position }, navBarLayout, props.className)
+    let classes = cs("z-navbar", navBarLayout, props.className)
 
     let finalNavGroup
     if (React.isValidElement(navGroup)) {
