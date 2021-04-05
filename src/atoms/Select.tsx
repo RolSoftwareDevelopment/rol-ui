@@ -2,22 +2,23 @@ import React, { HTMLAttributes, useEffect, useRef, useState } from 'react';
 import cn from 'classnames'
 import { useOutsideAlerter } from '../util/useOutsideAlerter'
 
-type Option = {
-    value: any, label: string, component?: any
+type Option<Value> = {
+    value: Value, label: string, component?: any
 }
 
-type OptionWithId = Option & { id: number }
+type OptionWithId<Value> = Option<Value> & { id: number }
 
-type Props = {
-    options?: Option[]
-    value?: any[]
-    initialValue?: any[]
+type ValueWithId<Value> = Value & { id: number }
+
+interface Props<Value> {
+    options?: Option<Value>[]
+    initialValue?: Value[]
     inputProps?: HTMLAttributes<HTMLInputElement>
     placeholder?: string
     notFoundComponent?: any
 
 
-    filter?: (value, label) => OptionWithId[]
+    filter?: (value, label) => OptionWithId<Value>[]
 
     multi?: boolean
 
@@ -28,7 +29,8 @@ type Props = {
 
     onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => any
     onOpen?: (data) => any
-    onClose?: (data) => any
+    onClose?: (data) => any,
+    beforeSelect?: (values: Value[]) => any
 
     classNameOnDropdownOpen?: string
     classNameOnDropdownClose?: string
@@ -45,11 +47,13 @@ type Props = {
 
 }
 
-const Select = (props: Props) => {
+
+const Select = <Value extends object>(props: Props<Value>) => {
     const [open, setOpen] = useState<boolean>(false)
     const [inputValue, setInputValue] = useState<string>("")
-    const [value, setValue] = useState<any[]>([])
-    const [options, setOptions] = useState<OptionWithId[]>([])
+    const [value, setValue] = useState<ValueWithId<Value>[]>(
+        (props.initialValue?.length && props?.initialValue?.map((iv, i) => { return { ...iv, id: i } })) || [])
+    const [options, setOptions] = useState<OptionWithId<Value>[]>([])
     const ref = useRef(null)
     useOutsideAlerter(ref, () => {
         setOpen(false)
@@ -64,7 +68,20 @@ const Select = (props: Props) => {
         }) || [])
     }, [])
 
-    const filterOptions: (options: OptionWithId[]) => OptionWithId[] = (options) => {
+
+    const onSelect = (opt) => {
+        props.beforeSelect && props.beforeSelect(opt)
+        setValue(prev => {
+            if (props.multi) return [{ ...opt.value, id: 0 }] //Si solo se puede seleccionar 1 valor entonces guardamos un array con 1 solo valor
+            let vals = [...prev] //Sino
+            const o = vals.find(v => v.id === opt.id) //Buscamos si la opcion que queremos agregar ya está en los valores seleccionados
+            if (!o) vals.push({ ...opt.value, id: opt.id }) // Si no está, entonces la agregamos a los valores seleccionados
+            return vals
+        })
+        console.log("selected")
+    }
+
+    const filterOptions: (options: OptionWithId<Value>[]) => OptionWithId<Value>[] = (options) => {
         if (props.filter) {
             return props.filter(inputValue, options)
         } else {
@@ -130,16 +147,7 @@ const Select = (props: Props) => {
                             return <div
                                 key={i}
                                 className={cn(props.optionContainerClassName)}
-                                onClick={() => {
-                                    setValue(prev => {
-                                        if (props.multi) return [opt.value] //Si solo se puede seleccionar 1 valor entonces guardamos un array con 1 solo valor
-
-                                        let vals = [...prev] //Sino
-                                        const o = vals.find(v => v.id === opt.id) //Buscamos si la opcion que queremos agregar ya está en los valores seleccionados
-                                        if (!o) vals.push(opt.value) // Si no está, entonces la agregamos a los valores seleccionados
-
-                                    })
-                                }}>{opt.component || opt.label}</div>
+                                onClick={() => onSelect(opt)}>{opt.component || opt.label}</div>
                         })
                         : props.notFoundComponent
                 }
