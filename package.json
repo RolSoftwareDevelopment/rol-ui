@@ -1,6 +1,6 @@
 {
   "name": "uirol",
-  "version": "0.2.14",
+  "version": "0.2.39",
   "description": "Atomic styleless React UI components",
   "main": "./dist",
   "scripts": {
@@ -9,7 +9,8 @@
   "author": "Nicolas Arias",
   "license": "ISC",
   "dependencies": {
-    "classnames": "^2.2.6"
+    "classnames": "^2.2.6",
+    "react-input-autosize": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.25",
