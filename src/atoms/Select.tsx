@@ -19,7 +19,9 @@ export interface Props<Value> {
   inputProps?: HTMLAttributes<HTMLInputElement>;
   placeholder?: string;
   dontClearInputOnBlur?: boolean;
+  onlyHandleDropdownWithDropdownHandler?: boolean;
 
+  ComponentDropdownHandler: any;
   ComponentClear: any;
   ComponentNotFound: any;
   renderComponentSelected: (data: {
@@ -38,8 +40,7 @@ export interface Props<Value> {
   disabled?: boolean;
 
   onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => any;
-  onOpen?: (data: any) => any;
-  onClose?: (data: any) => any;
+  onOpenChange?: (isOpen: boolean) => any;
   beforeSelect?: (values: Value[], newOption: OptionWithId<Value>) => any;
   onSelect?: (values: Value[], newOption: OptionWithId<Value>) => any;
   onChange?: (value: Value[]) => any;
@@ -86,9 +87,8 @@ export interface Props<Value> {
 }
 
 const Select = <Value extends object>(props: Props<Value>) => {
-  const [open, setOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
-  const [activeOption, setActiveOption] = useState<number>(0);
   const [values, setValues] = useState<ValueWithId<Value>[]>(
     (props.initialValue?.length &&
       props?.initialValue?.map((iv, i) => {
@@ -96,13 +96,35 @@ const Select = <Value extends object>(props: Props<Value>) => {
       })) ||
       []
   );
-  //   const [options, setOptions] = useState<OptionWithId<Value>[]>([]);
   const ref = useRef(null);
   const inputRef = useRef(null);
   useOutsideAlerter(ref, () => {
-    setOpen(false);
+    handleDropdown({ isOpen: false });
     setInputValue("");
   });
+
+  useEffect(() => {
+    props.onOpenChange && props.onOpenChange(isOpen);
+  }, [isOpen]);
+
+  const handleDropdown = (
+    options:
+      | {
+          isDropdownHandler: true;
+          isOpen?: boolean;
+        }
+      | { isOpen: boolean; isDropdownHandler?: boolean }
+  ) => {
+    
+    if (options.isDropdownHandler) {
+      setIsOpen((prev) => !prev);
+    } else {
+      if (!props.onlyHandleDropdownWithDropdownHandler) {
+        setIsOpen(options.isOpen);
+      }
+    }
+
+  };
 
   const options =
     props.options?.map((opt, i) => {
@@ -125,7 +147,7 @@ const Select = <Value extends object>(props: Props<Value>) => {
       if (!o) vals.push({ ...opt.value, id: opt.id }); // Si no está, entonces la agregamos a los valores seleccionados
       return vals;
     });
-    props.closeOnSelect && !props.disabled && setOpen(false);
+    props.closeOnSelect && !props.disabled && handleDropdown({ isOpen: false });
   };
 
   const filterOptions: (
@@ -168,12 +190,11 @@ const Select = <Value extends object>(props: Props<Value>) => {
         [props.disabledContainerClassName]: props.disabled,
         relative: !props.noContainerDefaultClassNames,
 
-        [props.containerClassNameOnDropdownOpen]: open,
+        [props.containerClassNameOnDropdownOpen]: isOpen,
 
-        [props.containerClassNameOnDropdownClose]: !open,
+        [props.containerClassNameOnDropdownClose]: !isOpen,
       })}
     >
-      {/* Selected and Input  Container */}
       <div
         className={cn(props.className, {
           [props.enabledClassName]: !props.disabled,
@@ -181,11 +202,12 @@ const Select = <Value extends object>(props: Props<Value>) => {
           [props.disabledClassName]: props.disabled,
           flex: !props.noDefaultClassNames,
 
-          [props.classNameOnDropdownOpen]: open,
+          [props.classNameOnDropdownOpen]: isOpen,
 
-          [props.classNameOnDropdownClose]: !open,
+          [props.classNameOnDropdownClose]: !isOpen,
         })}
       >
+        {/* Selected and Input  Container */}
         <div
           onClick={() => {
             inputRef.current.focus();
@@ -197,8 +219,8 @@ const Select = <Value extends object>(props: Props<Value>) => {
               [props.enabledClassName]: !props.disabled,
               [props.disabledClassName]: props.disabled,
               flex: !props.noInputContainerDefaultClassNames,
-              [props.inputContainerClassNameOnDropdownOpen]: open,
-              [props.inputContainerClassNameOnDropdownClose]: !open,
+              [props.inputContainerClassNameOnDropdownOpen]: isOpen,
+              [props.inputContainerClassNameOnDropdownClose]: !isOpen,
             }
           )}
         >
@@ -226,7 +248,7 @@ const Select = <Value extends object>(props: Props<Value>) => {
             ref={inputRef}
             onBlur={() => {
               // setTimeout(() => {
-              //   setOpen(false);
+              //   setIsOpen(false);
               // }, 100);//This is a temporarly if in case someone use "tab" to change focus
               !props.dontClearInputOnBlur && setInputValue("");
             }}
@@ -236,13 +258,13 @@ const Select = <Value extends object>(props: Props<Value>) => {
               [props.enabledInputClassName]: !props.disabled,
               [props.disabledInputClassName]: props.disabled,
               "outline-none": !props.noInputDefaultClassNames,
-              [props.inputClassNameOnDropdownOpen]: open,
-              [props.inputClassNameOnDropdownClose]: !open,
+              [props.inputClassNameOnDropdownOpen]: isOpen,
+              [props.inputClassNameOnDropdownClose]: !isOpen,
             })}
-            onFocus={() => !props.disabled && setOpen(true)}
+            onFocus={() => !props.disabled && handleDropdown({ isOpen: true })}
             onClick={(e) => {
               if (!props.disabled) {
-                setOpen(true);
+                handleDropdown({ isOpen: true });
                 props.inputProps?.onChange && props.inputProps?.onChange(e);
               }
             }}
@@ -256,10 +278,20 @@ const Select = <Value extends object>(props: Props<Value>) => {
         </div>
         {props.ComponentClear &&
           React.cloneElement(props.ComponentClear, {
+            ...props.ComponentClear.props,
             onClick: () => {
               props.ComponentClear.onClick && props.ComponentClear.onClick();
               setInputValue("");
               setValues([]);
+            },
+          })}
+        {props.ComponentDropdownHandler &&
+          React.cloneElement(props.ComponentDropdownHandler, {
+            ...props.ComponentDropdownHandler.props,
+            onClick: () => {
+              handleDropdown({ isDropdownHandler: true });
+              props.ComponentDropdownHandler.props.onClick &&
+                props.ComponentDropdownHandler.props.onClick();
             },
           })}
       </div>
@@ -267,10 +299,10 @@ const Select = <Value extends object>(props: Props<Value>) => {
         className={cn(props.dropdownClassName, {
           [props.enabledDropdownClassName]: !props.disabled,
           [props.disabledDropdownClassName]: props.disabled,
-          hidden: !props.noDropdownDefaultClassNames && !open,
-          absolute: !props.noDropdownDefaultClassNames && open,
-          [props.dropdownClassNameOnDropdownOpen]: open,
-          [props.dropdownClassNameOnDropdownClose]: !open,
+          hidden: !props.noDropdownDefaultClassNames && !isOpen,
+          absolute: !props.noDropdownDefaultClassNames && isOpen,
+          [props.dropdownClassNameOnDropdownOpen]: isOpen,
+          [props.dropdownClassNameOnDropdownClose]: !isOpen,
         })}
       >
         {filteredOptions.length
